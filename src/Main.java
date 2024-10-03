@@ -1,25 +1,30 @@
 package src;
 
+import java.io.Console;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) {
-        Scanner scanner = new Scanner(System.in);
-        String command;
+        Console console = System.console();
         List<String> cart = new ArrayList<>();
-        System.out.println("Welcome to your shopping cart");
-        while (true) {
-            command = scanner.nextLine();
-            
-            if (command.contains("exit")) {
-                System.out.println("Bye!");
-                break;
-            }
+        String keyboardInput = "";
 
-            else if (command.contains("delete")) {
-                int number = Integer.parseInt(command.substring(7)) - 1;
+        System.out.println("Welcome to your shopping cart");
+        System.out.println("====================");
+        System.out.println("Commands List:");
+        System.out.println("LIst items in your cart: list");
+        System.out.println("Add items in your cart: add");
+        System.out.println("Delete an item in your list: delete 1");
+        System.out.println("Exit the cart: exit");
+
+        while (!keyboardInput.equals("exit")) {
+            keyboardInput = console.readLine("> ");
+            if (keyboardInput.startsWith("delete")) {
+                Scanner scanner = new Scanner(keyboardInput.substring(7));
+                String input = scanner.next();
+                int number = Integer.parseInt(input) - 1;
                 if (number >= cart.size()) {
                     System.out.println("Incorrect item index");
                 } else {
@@ -27,11 +32,13 @@ public class Main {
                     cart.remove(number);
                     System.out.printf("%s removed from cart \n", item);
                 }
-                continue;
+                scanner.close();
             } 
 
-            else if (command.contains("add")) {
-                String trimmedCommand = command.replaceAll(",\\s+", ",");
+            else if (keyboardInput.startsWith("add")) {
+                Scanner scanner = new Scanner(keyboardInput);
+                String input = scanner.nextLine();
+                String trimmedCommand = input.replaceAll(",\\s+", ",");
                 String[] arrOfItems = trimmedCommand.substring(4).split(",");
                 for (String item : arrOfItems) {
                     if (cart.contains(item)) {
@@ -41,20 +48,18 @@ public class Main {
                         System.out.printf("%s added to your cart \n",item);
                     }
                 }
-                continue;
+                scanner.close();
             } 
 
-            else if(command.contains("list")) {
-                if (cart.isEmpty()) {
-                    System.out.println("Your cart is empty");
-                } else {
+            else if(keyboardInput.equals("list")) {
+                if (!cart.isEmpty()) {
                     for (int i = 0; i < cart.size(); i++) {
-                        System.out.printf("%d. %s \n", i+1, cart.get(i));
+                        System.out.printf("%d. %s \n",i+1,cart.get(i));
                     }
+                } else {
+                    System.out.println("Your cart is empty");
                 }
-                continue;
             }
-            scanner.close();   
         }        
     }
 }
