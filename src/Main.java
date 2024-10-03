@@ -31,7 +31,8 @@ public class Main {
             } 
 
             else if (command.contains("add")) {
-                String[] arrOfItems = command.substring(4).split(", ");
+                String trimmedCommand = command.replaceAll(",\\s+", ",");
+                String[] arrOfItems = trimmedCommand.substring(4).split(",");
                 for (String item : arrOfItems) {
                     if (cart.contains(item)) {
                         System.out.printf("You have %s in your cart \n", item);
