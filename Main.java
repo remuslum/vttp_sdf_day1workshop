@@ -5,8 +5,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
-import src.CartManager;
 import src.Item;
+import src.commands.AddCommand;
+import src.commands.DeleteCommand;
+import src.commands.ListCommand;
+import src.manager.ShoppingCartDB;
+import src.manager.FileName;
 
 public class Main {
     public static void main(String[] args) throws IOException{
@@ -27,40 +31,28 @@ public class Main {
         boolean isUserLoggedIn = false;
         List<Item> cart = new ArrayList<>();
         String fileType = ".db";
-        CartManager manager = new CartManager();
+        ShoppingCartDB manager = new ShoppingCartDB(); 
+        FileName fileName = new FileName();
 
         while (!keyboardInput.equals("exit")) {
             keyboardInput = console.readLine("> ");
             if (keyboardInput.startsWith("login")) {
-                // Check if the database cartdb exists
-                if (!(new File("cartdb")).exists()){
-                    // If it does not, create a new database file named db
-                    dirPath = "db";
-                } else {
-                    dirPath = "cartdb";
-                }
+                //Read Username
                 Scanner scanner = new Scanner(keyboardInput.substring(5));
-                dirPathFileName = dirPath + File.separator + scanner.nextLine() + fileType;
-                File file = new File(dirPathFileName);
-                if (!file.exists()) {
-                    file.createNewFile();
-                    cart = new ArrayList<>();
-                } else {
-                    manager.readCartFile(dirPathFileName, cart); 
-                }
+                String username = scanner.nextLine();
+
+                // Load/Create file
+                dirPathFileName = fileName.generateFileName(username);
+                cart = manager.readCartFile(dirPathFileName, cart);
+                isUserLoggedIn = true;
                 scanner.close();
             }
             else if (keyboardInput.startsWith("delete")) {
                 Scanner scanner = new Scanner(keyboardInput.substring(7));
                 String input = scanner.next();
                 int number = Integer.parseInt(input) - 1;
-                if (number >= cart.size()) {
-                    System.out.println("Incorrect item index");
-                } else {
-                    Item item = cart.get(number);
-                    cart.remove(number);
-                    System.out.printf("%s removed from cart \n", item.getItemName());
-                }
+                DeleteCommand deleteCommand = new DeleteCommand(number);
+                deleteCommand.execute(cart);
                 scanner.close();
             } 
 
@@ -69,28 +61,25 @@ public class Main {
                 String input = scanner.nextLine();
                 String trimmedCommand = input.replaceAll(",\\s+", ",");
                 String[] arrOfItems = trimmedCommand.substring(4).split(",");
-                for (String itemName : arrOfItems) {
-                    Item item = new Item(itemName);
-                    if (cart.contains(item)) {
-                        System.out.printf("You have %s in your cart \n", item.getItemName());
-                    } else {
-                        cart.add(item);
-                        System.out.printf("%s added to your cart \n",item.getItemName());
-                    }
-                }
+                AddCommand addCommand = new AddCommand(arrOfItems);
+                addCommand.execute(cart);
                 scanner.close();
             } 
-
             else if(keyboardInput.equals("list")) {
-                if (!cart.isEmpty()) {
-                    for (int i = 0; i < cart.size(); i++) {
-                        System.out.printf("%d. %s \n",i+1,cart.get(i).getItemName());
-                    }
+                ListCommand listCommand = new ListCommand();
+                listCommand.execute(cart);
+            }
+            else if (keyboardInput.equals("save")) {
+                if (isUserLoggedIn) {
+                    manager.writeToCartFile(dirPathFileName, cart);
+                    System.out.println("File successfully saved");
                 } else {
-                    System.out.println("Your cart is empty");
+                    System.out.println("Please login before saving");
                 }
+            } 
+            else if (keyboardInput.equals("users")) {
+                manager.readAllFiles(fileName.getDirPath());
             }
         }
-        manager.writeToCartFile(dirPathFileName, cart);
     }
 }
